@@ -7,10 +7,11 @@ import { CalendarIcon } from "lucide-react";
 import { journalEntrySchema, type JournalEntryFormValues } from "@/lib/validations/journal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -23,6 +24,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { MoodSelector } from "./mood-selector";
+import { ImageUpload } from "@/components/trades/image-upload";
 import { LoadingSpinner } from "@/components/shared/loading-spinner";
 import { cn } from "@/lib/utils";
 import type { JournalEntry, MoodType } from "@/types";
@@ -32,6 +34,8 @@ interface JournalEntryFormProps {
   onSubmit: (values: JournalEntryFormValues) => Promise<void>;
   onCancel: () => void;
   loading?: boolean;
+  formId?: string;
+  hideFooter?: boolean;
 }
 
 export function JournalEntryForm({
@@ -39,6 +43,8 @@ export function JournalEntryForm({
   onSubmit,
   onCancel,
   loading = false,
+  formId,
+  hideFooter = false,
 }: JournalEntryFormProps) {
   const form = useForm<JournalEntryFormValues>({
     resolver: zodResolver(journalEntrySchema),
@@ -46,6 +52,7 @@ export function JournalEntryForm({
       title: entry?.title || "",
       content: entry?.content || "",
       mood: entry?.mood as MoodType || undefined,
+      image_urls: entry?.image_urls || [],
       entry_date: entry?.entry_date || format(new Date(), "yyyy-MM-dd"),
     },
   });
@@ -56,7 +63,7 @@ export function JournalEntryForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <form id={formId} onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         {/* Date */}
         <FormField
           control={form.control}
@@ -145,10 +152,10 @@ export function JournalEntryForm({
             <FormItem>
               <FormLabel>Journal Entry</FormLabel>
               <FormControl>
-                <Textarea
+                <RichTextEditor
+                  value={field.value}
+                  onChange={field.onChange}
                   placeholder="Write about your trading day, market observations, lessons learned, emotions, and thoughts..."
-                  className="min-h-[200px] resize-none"
-                  {...field}
                 />
               </FormControl>
               <FormMessage />
@@ -156,16 +163,41 @@ export function JournalEntryForm({
           )}
         />
 
-        {/* Actions */}
-        <div className="flex justify-end gap-3">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={loading}>
-            {loading && <LoadingSpinner size="sm" className="mr-2" />}
-            {entry ? "Update Entry" : "Save Entry"}
-          </Button>
-        </div>
+        {/* Screenshots */}
+        <FormField
+          control={form.control}
+          name="image_urls"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Screenshots (optional)</FormLabel>
+              <FormControl>
+                <ImageUpload
+                  value={field.value ?? []}
+                  onChange={field.onChange}
+                  maxImages={4}
+                  disabled={loading}
+                />
+              </FormControl>
+              <FormDescription className="text-xs">
+                Max 4 images, 5MB each
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Actions - only show if not hidden (for standalone use) */}
+        {!hideFooter && (
+          <div className="flex justify-end gap-3 pt-4">
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading && <LoadingSpinner size="sm" className="mr-2" />}
+              {entry ? "Update Entry" : "Save Entry"}
+            </Button>
+          </div>
+        )}
       </form>
     </Form>
   );

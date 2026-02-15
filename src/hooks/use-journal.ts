@@ -74,6 +74,7 @@ export function useJournal() {
         title: values.title,
         content: values.content,
         mood: values.mood,
+        image_urls: values.image_urls || [],
         entry_date: values.entry_date,
       })
       .select()

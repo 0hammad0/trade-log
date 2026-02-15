@@ -19,9 +19,13 @@ function PageHeaderComponent({
   return (
     <div className={cn("flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between", className)}>
       <div>
-        <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">{title}</h1>
+        <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">
+          <span className="bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text">
+            {title}
+          </span>
+        </h1>
         {description && (
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+          <p className="mt-1.5 text-sm font-medium text-muted-foreground">{description}</p>
         )}
       </div>
       {action && <div className="mt-4 sm:mt-0">{action}</div>}

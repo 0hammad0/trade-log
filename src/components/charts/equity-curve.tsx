@@ -89,38 +89,60 @@ function EquityCurveComponent({
   const isPositive = latestEquity >= 0;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Equity Curve</CardTitle>
+    <Card className="overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <div>
+          <CardTitle className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+            Equity Curve
+          </CardTitle>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Cumulative P&L over time
+          </p>
+        </div>
+        <div className={`rounded-lg px-3 py-1.5 text-sm font-bold ${
+          isPositive
+            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+            : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+        }`}>
+          {formatCurrency(latestEquity, currency)}
+        </div>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+            <defs>
+              <linearGradient id="equityGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={isPositive ? "#10b981" : "#ef4444"} stopOpacity={0.2}/>
+                <stop offset="95%" stopColor={isPositive ? "#10b981" : "#ef4444"} stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-muted/50" vertical={false} />
             <XAxis
               dataKey="date"
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 11 }}
               tickLine={false}
               axisLine={false}
               className="text-muted-foreground"
             />
             <YAxis
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 11 }}
               tickLine={false}
               axisLine={false}
               tickFormatter={(value) => formatCurrency(value, currency)}
               className="text-muted-foreground"
+              width={80}
             />
             <Tooltip
               content={({ active, payload }) => {
                 if (!active || !payload?.[0]) return null;
                 const data = payload[0].payload;
                 return (
-                  <div className="rounded-lg border bg-background p-3 shadow-md">
-                    <p className="text-sm font-medium">{data.date}</p>
+                  <div className="rounded-xl border bg-card p-3 shadow-xl">
+                    <p className="text-sm font-semibold">{data.date}</p>
                     <p className="text-xs text-muted-foreground">{data.trade}</p>
                     <p
-                      className={`text-sm font-semibold ${
+                      className={`mt-1 text-lg font-bold ${
                         data.equity >= 0
                           ? "text-emerald-600 dark:text-emerald-400"
                           : "text-red-600 dark:text-red-400"
@@ -136,9 +158,10 @@ function EquityCurveComponent({
               type="monotone"
               dataKey="equity"
               stroke={isPositive ? "#10b981" : "#ef4444"}
-              strokeWidth={2}
+              strokeWidth={2.5}
               dot={false}
-              activeDot={{ r: 4 }}
+              activeDot={{ r: 6, strokeWidth: 2, stroke: "#fff" }}
+              fill="url(#equityGradient)"
             />
           </LineChart>
         </ResponsiveContainer>

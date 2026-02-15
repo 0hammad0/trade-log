@@ -22,6 +22,8 @@ export interface Trade {
   entry_price: number;
   exit_price: number | null;
   quantity: number;
+  lot_size: number | null;
+  account_size: number | null;
   stop_loss: number | null;
   take_profit: number | null;
   status: TradeStatus;
@@ -58,6 +60,7 @@ export interface JournalEntry {
   title: string | null;
   content: string;
   mood: MoodType | null;
+  image_urls: string[] | null;
   entry_date: string;
   created_at: string;
   updated_at: string;

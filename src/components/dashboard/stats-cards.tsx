@@ -125,18 +125,29 @@ function StatsCardsComponent({ stats, loading, currency = "USD" }: StatsCardsPro
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {cards.slice(0, 4).map((card) => (
-        <Card key={card.title} className="transition-all duration-200 hover:shadow-md">
+      {cards.slice(0, 4).map((card, index) => (
+        <Card
+          key={card.title}
+          className={cn(
+            "relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5",
+            index === 0 && "border-primary/20 bg-gradient-to-br from-card to-primary/5"
+          )}
+        >
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div
                 className={cn(
-                  "flex h-10 w-10 items-center justify-center rounded-lg",
+                  "flex h-11 w-11 items-center justify-center rounded-xl shadow-sm",
                   card.iconColor
                 )}
               >
                 <card.icon className="h-5 w-5" strokeWidth={1.5} />
               </div>
+              {index === 0 && (
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                  Total
+                </span>
+              )}
             </div>
             <div className="mt-4">
               <p
@@ -147,9 +158,12 @@ function StatsCardsComponent({ stats, loading, currency = "USD" }: StatsCardsPro
               >
                 {card.value}
               </p>
-              <p className="text-sm text-muted-foreground">{card.title}</p>
+              <p className="text-sm font-medium text-muted-foreground">{card.title}</p>
+              <p className="mt-1 text-xs text-muted-foreground/70">{card.description}</p>
             </div>
           </CardContent>
+          {/* Subtle gradient overlay */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-transparent to-white/5 dark:to-white/[0.02]" />
         </Card>
       ))}
     </div>

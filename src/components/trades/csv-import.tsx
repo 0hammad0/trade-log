@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Upload, FileText, AlertCircle, CheckCircle } from "lucide-react";
+import { Upload, FileText, AlertCircle, CheckCircle, X } from "lucide-react";
 import Papa from "papaparse";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +10,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { LoadingSpinner } from "@/components/shared/loading-spinner";
 import { toast } from "sonner";
@@ -123,15 +125,27 @@ export function CSVImport({ open, onOpenChange, onImport }: CSVImportProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Import Trades from CSV</DialogTitle>
-          <DialogDescription>
-            Upload a CSV file with your trades. Required columns: symbol, entry_price, quantity, trade_date
-          </DialogDescription>
+      <DialogContent showCloseButton={false} className="flex max-h-[90vh] max-w-lg flex-col gap-0 overflow-hidden p-0">
+        {/* Fixed Header with shadow */}
+        <DialogHeader className="relative z-10 flex-shrink-0 border-b bg-background px-6 py-4 shadow-sm">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <DialogTitle>Import Trades from CSV</DialogTitle>
+              <DialogDescription className="mt-1.5">
+                Upload a CSV file with your trades. Required columns: symbol, entry_price, quantity, trade_date
+              </DialogDescription>
+            </div>
+            <DialogClose asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 rounded-full">
+                <X className="h-4 w-4" />
+                <span className="sr-only">Close</span>
+              </Button>
+            </DialogClose>
+          </div>
         </DialogHeader>
 
-        <div className="space-y-4">
+        {/* Scrollable Content */}
+        <div className="scrollbar-slim flex-1 space-y-4 overflow-y-auto px-6 py-4">
           {/* File upload */}
           <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 transition-colors hover:border-primary hover:bg-accent/50">
             <Upload className="h-8 w-8 text-muted-foreground" strokeWidth={1.5} />
@@ -211,21 +225,21 @@ export function CSVImport({ open, onOpenChange, onImport }: CSVImportProps) {
               Download CSV template
             </a>
           </div>
-
-          {/* Actions */}
-          <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleImport}
-              disabled={loading || parsedTrades.length === 0}
-            >
-              {loading && <LoadingSpinner size="sm" className="mr-2" />}
-              Import {parsedTrades.length} Trades
-            </Button>
-          </div>
         </div>
+
+        {/* Fixed Footer with shadow */}
+        <DialogFooter className="relative z-10 flex-shrink-0 border-t bg-background px-6 py-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleImport}
+            disabled={loading || parsedTrades.length === 0}
+          >
+            {loading && <LoadingSpinner size="sm" className="mr-2" />}
+            Import {parsedTrades.length} Trades
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

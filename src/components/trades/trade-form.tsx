@@ -9,7 +9,7 @@ import { tradeFormSchema, type TradeFormValues, type TradeFormInput } from "@/li
 import { MARKETS, CURRENCIES, DIRECTIONS, TRADE_STATUSES } from "@/constants/markets";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import {
   Form,
   FormControl,
@@ -33,14 +33,20 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { LoadingSpinner } from "@/components/shared/loading-spinner";
+import { ImageUpload } from "./image-upload";
+import { SymbolCombobox } from "./symbol-combobox";
 import { cn } from "@/lib/utils";
 import type { Trade } from "@/types";
+import type { Symbol } from "@/hooks/use-symbols";
 
 interface TradeFormProps {
   trade?: Trade;
   onSubmit: (values: TradeFormValues) => Promise<void>;
   onCancel: () => void;
   loading?: boolean;
+  formId?: string;
+  hideFooter?: boolean;
+  symbols?: Symbol[];
 }
 
 export function TradeForm({
@@ -48,23 +54,30 @@ export function TradeForm({
   onSubmit,
   onCancel,
   loading = false,
+  formId,
+  hideFooter = false,
+  symbols = [],
 }: TradeFormProps) {
   const form = useForm<TradeFormInput>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(tradeFormSchema) as any,
     defaultValues: {
       symbol: trade?.symbol || "",
-      market_type: trade?.market_type || "stock",
+      market_type: trade?.market_type || "crypto",
       currency: trade?.currency || "USD",
       direction: trade?.direction || "long",
       entry_price: trade?.entry_price || undefined,
       exit_price: trade?.exit_price || undefined,
-      quantity: trade?.quantity || undefined,
+      quantity: trade?.quantity || 1,
+      lot_size: trade?.lot_size || undefined,
+      account_size: trade?.account_size || undefined,
       stop_loss: trade?.stop_loss || undefined,
       take_profit: trade?.take_profit || undefined,
       status: trade?.status || "open",
+      manual_pnl: trade?.profit_loss || undefined,
       setup: trade?.setup || "",
       notes: trade?.notes || "",
+      image_urls: trade?.image_urls || [],
       trade_date: trade?.trade_date?.split("T")[0] || format(new Date(), "yyyy-MM-dd"),
       exit_date: trade?.exit_date?.split("T")[0] || undefined,
     },
@@ -85,9 +98,9 @@ export function TradeForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <form id={formId} onSubmit={form.handleSubmit(handleSubmit)} className="space-y-3">
         {/* Row 1: Symbol, Market Type, Currency */}
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <FormField
             control={form.control}
             name="symbol"
@@ -95,7 +108,13 @@ export function TradeForm({
               <FormItem>
                 <FormLabel>Symbol</FormLabel>
                 <FormControl>
-                  <Input placeholder="AAPL" {...field} className="uppercase" />
+                  <SymbolCombobox
+                    value={field.value}
+                    onChange={field.onChange}
+                    symbols={symbols}
+                    disabled={loading}
+                    placeholder="Search or add..."
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -152,7 +171,7 @@ export function TradeForm({
         </div>
 
         {/* Row 2: Direction, Status */}
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-2 gap-3">
           <FormField
             control={form.control}
             name="direction"
@@ -203,8 +222,8 @@ export function TradeForm({
           />
         </div>
 
-        {/* Row 3: Entry, Exit, Quantity */}
-        <div className="grid gap-4 sm:grid-cols-3">
+        {/* Row 3: Entry, Exit, Lot Size */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
           <FormField
             control={form.control}
             name="entry_price"
@@ -217,6 +236,7 @@ export function TradeForm({
                     step="any"
                     placeholder="0.00"
                     {...field}
+                    value={field.value ?? ""}
                     onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
                   />
                 </FormControl>
@@ -240,24 +260,27 @@ export function TradeForm({
                     onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
                   />
                 </FormControl>
-                <FormDescription>Leave empty for open trades</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
           <FormField
             control={form.control}
-            name="quantity"
+            name="lot_size"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Quantity</FormLabel>
+                <FormLabel>Lot Size</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
-                    step="any"
-                    placeholder="0"
+                    step="0.001"
+                    placeholder="0.01"
                     {...field}
-                    onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
+                    value={field.value ?? ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      field.onChange(val === "" ? undefined : parseFloat(val));
+                    }}
                   />
                 </FormControl>
                 <FormMessage />
@@ -266,8 +289,28 @@ export function TradeForm({
           />
         </div>
 
-        {/* Row 4: Stop Loss, Take Profit */}
-        <div className="grid gap-4 sm:grid-cols-2">
+        {/* Row 4: Account Size, Stop Loss, Take Profit */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          <FormField
+            control={form.control}
+            name="account_size"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Account Size</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="any"
+                    placeholder="10000"
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name="stop_loss"
@@ -310,30 +353,30 @@ export function TradeForm({
           />
         </div>
 
-        {/* Row 5: Trade Date, Exit Date */}
-        <div className="grid gap-4 sm:grid-cols-2">
+        {/* Row 5: Trade Date, Exit Date, P&L (when closed) */}
+        <div className={cn("grid gap-2 sm:gap-3", watchStatus === "closed" ? "grid-cols-3" : "grid-cols-2")}>
           <FormField
             control={form.control}
             name="trade_date"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Trade Date</FormLabel>
+                <FormLabel className="text-xs sm:text-sm">Trade Date</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
                         variant="outline"
                         className={cn(
-                          "pl-3 text-left font-normal",
+                          "w-full pl-2 pr-1 text-left font-normal text-xs sm:text-sm sm:pl-3 sm:pr-3",
                           !field.value && "text-muted-foreground"
                         )}
                       >
                         {field.value ? (
-                          format(new Date(field.value), "PPP")
+                          format(new Date(field.value), "MMM d, yy")
                         ) : (
-                          <span>Pick a date</span>
+                          <span>Pick</span>
                         )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        <CalendarIcon className="ml-auto h-3.5 w-3.5 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -358,23 +401,23 @@ export function TradeForm({
             name="exit_date"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Exit Date</FormLabel>
+                <FormLabel className="text-xs sm:text-sm">Exit Date</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
                         variant="outline"
                         className={cn(
-                          "pl-3 text-left font-normal",
+                          "w-full pl-2 pr-1 text-left font-normal text-xs sm:text-sm sm:pl-3 sm:pr-3",
                           !field.value && "text-muted-foreground"
                         )}
                       >
                         {field.value ? (
-                          format(new Date(field.value), "PPP")
+                          format(new Date(field.value), "MMM d, yy")
                         ) : (
-                          <span>Pick a date</span>
+                          <span>Pick</span>
                         )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        <CalendarIcon className="ml-auto h-3.5 w-3.5 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -394,6 +437,32 @@ export function TradeForm({
               </FormItem>
             )}
           />
+          {watchStatus === "closed" && (
+            <FormField
+              control={form.control}
+              name="manual_pnl"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel className="text-xs sm:text-sm">P&L</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="any"
+                      placeholder="Auto"
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        field.onChange(val === "" ? undefined : parseFloat(val));
+                      }}
+                      className="text-xs sm:text-sm"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
         </div>
 
         {/* Row 6: Setup */}
@@ -423,11 +492,10 @@ export function TradeForm({
             <FormItem>
               <FormLabel>Notes</FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder="What did you observe? Any lessons learned?"
-                  className="min-h-[100px] resize-none"
-                  {...field}
+                <RichTextEditor
                   value={field.value ?? ""}
+                  onChange={field.onChange}
+                  placeholder="What did you observe? Any lessons learned?"
                 />
               </FormControl>
               <FormMessage />
@@ -435,16 +503,41 @@ export function TradeForm({
           )}
         />
 
-        {/* Actions */}
-        <div className="flex justify-end gap-3">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={loading}>
-            {loading && <LoadingSpinner size="sm" className="mr-2" />}
-            {trade ? "Update Trade" : "Add Trade"}
-          </Button>
-        </div>
+        {/* Row 8: Screenshots */}
+        <FormField
+          control={form.control}
+          name="image_urls"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Screenshots</FormLabel>
+              <FormControl>
+                <ImageUpload
+                  value={field.value ?? []}
+                  onChange={field.onChange}
+                  maxImages={4}
+                  disabled={loading}
+                />
+              </FormControl>
+              <FormDescription className="text-xs">
+                Max 4 images, 5MB each
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Actions - only show if not hidden (for standalone use) */}
+        {!hideFooter && (
+          <div className="flex justify-end gap-3 pt-4">
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading && <LoadingSpinner size="sm" className="mr-2" />}
+              {trade ? "Update Trade" : "Add Trade"}
+            </Button>
+          </div>
+        )}
       </form>
     </Form>
   );

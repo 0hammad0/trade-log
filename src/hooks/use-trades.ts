@@ -92,13 +92,33 @@ export function useTrades(filters?: TradeFilters) {
     let profit_loss: number | null = null;
     let profit_loss_percent: number | null = null;
 
-    if (values.status === 'closed' && values.exit_price) {
-      const entryValue = values.entry_price * values.quantity;
-      const exitValue = values.exit_price * values.quantity;
-      profit_loss = values.direction === 'long'
-        ? exitValue - entryValue
-        : entryValue - exitValue;
-      profit_loss_percent = (profit_loss / entryValue) * 100;
+    if (values.status === 'closed') {
+      // Use manual P&L if provided
+      if (values.manual_pnl !== undefined && values.manual_pnl !== null) {
+        profit_loss = values.manual_pnl;
+        // Calculate percent based on account size or entry value
+        if (values.account_size) {
+          profit_loss_percent = (profit_loss / values.account_size) * 100;
+        } else {
+          const entryValue = values.entry_price * (values.lot_size || values.quantity || 1);
+          profit_loss_percent = entryValue > 0 ? (profit_loss / entryValue) * 100 : null;
+        }
+      } else if (values.exit_price) {
+        // Auto-calculate P&L from prices and lot size
+        const size = values.lot_size || values.quantity || 1;
+        const priceDiff = values.direction === 'long'
+          ? values.exit_price - values.entry_price
+          : values.entry_price - values.exit_price;
+        profit_loss = priceDiff * size;
+
+        // Calculate percent based on account size or position value
+        if (values.account_size) {
+          profit_loss_percent = (profit_loss / values.account_size) * 100;
+        } else {
+          const entryValue = values.entry_price * size;
+          profit_loss_percent = entryValue > 0 ? (profit_loss / entryValue) * 100 : null;
+        }
+      }
     }
 
     // Calculate risk/reward
@@ -120,6 +140,8 @@ export function useTrades(filters?: TradeFilters) {
         entry_price: values.entry_price,
         exit_price: values.exit_price,
         quantity: values.quantity,
+        lot_size: values.lot_size,
+        account_size: values.account_size,
         stop_loss: values.stop_loss,
         take_profit: values.take_profit,
         status: values.status,
@@ -128,6 +150,7 @@ export function useTrades(filters?: TradeFilters) {
         risk_reward,
         setup: values.setup,
         notes: values.notes,
+        image_urls: values.image_urls || null,
         trade_date: values.trade_date,
         exit_date: values.exit_date,
       })
@@ -144,14 +167,32 @@ export function useTrades(filters?: TradeFilters) {
     // Calculate P&L if trade is being closed
     const updateData: Record<string, unknown> = { ...values };
 
-    if (values.status === 'closed' && values.exit_price && values.entry_price && values.quantity) {
-      const entryValue = values.entry_price * values.quantity;
-      const exitValue = values.exit_price * values.quantity;
-      const profit_loss = values.direction === 'long'
-        ? exitValue - entryValue
-        : entryValue - exitValue;
-      updateData.profit_loss = profit_loss;
-      updateData.profit_loss_percent = (profit_loss / entryValue) * 100;
+    if (values.status === 'closed' && values.entry_price) {
+      // Use manual P&L if provided
+      if (values.manual_pnl !== undefined && values.manual_pnl !== null) {
+        updateData.profit_loss = values.manual_pnl;
+        if (values.account_size) {
+          updateData.profit_loss_percent = (values.manual_pnl / values.account_size) * 100;
+        } else {
+          const entryValue = values.entry_price * (values.lot_size || values.quantity || 1);
+          updateData.profit_loss_percent = entryValue > 0 ? (values.manual_pnl / entryValue) * 100 : null;
+        }
+      } else if (values.exit_price) {
+        // Auto-calculate P&L
+        const size = values.lot_size || values.quantity || 1;
+        const priceDiff = values.direction === 'long'
+          ? values.exit_price - values.entry_price
+          : values.entry_price - values.exit_price;
+        const profit_loss = priceDiff * size;
+        updateData.profit_loss = profit_loss;
+
+        if (values.account_size) {
+          updateData.profit_loss_percent = (profit_loss / values.account_size) * 100;
+        } else {
+          const entryValue = values.entry_price * size;
+          updateData.profit_loss_percent = entryValue > 0 ? (profit_loss / entryValue) * 100 : null;
+        }
+      }
     }
 
     if (values.stop_loss && values.take_profit && values.entry_price) {
@@ -178,6 +219,23 @@ export function useTrades(filters?: TradeFilters) {
 
   const deleteTrade = useCallback(async (id: string) => {
     const supabase = createClient();
+
+    // First, get the trade to find image URLs
+    const trade = trades.find(t => t.id === id);
+
+    // Delete images from storage if they exist
+    if (trade?.image_urls && trade.image_urls.length > 0) {
+      const filePaths = trade.image_urls.map(url => {
+        const parts = url.split('/trade_log_bucket/');
+        return parts.length > 1 ? parts[1] : null;
+      }).filter((path): path is string => path !== null);
+
+      if (filePaths.length > 0) {
+        await supabase.storage.from('trade_log_bucket').remove(filePaths);
+      }
+    }
+
+    // Then delete the trade record
     const { error: deleteError } = await supabase
       .from('trades')
       .delete()
@@ -185,7 +243,7 @@ export function useTrades(filters?: TradeFilters) {
 
     if (deleteError) throw deleteError;
     setTrades(prev => prev.filter(t => t.id !== id));
-  }, []);
+  }, [trades]);
 
   const refresh = useCallback(() => {
     fetchTrades(true);

@@ -69,13 +69,13 @@ export function CSVExport() {
   };
 
   return (
-    <Button variant="outline" onClick={handleExport} disabled={loading}>
+    <Button variant="outline" size="sm" onClick={handleExport} disabled={loading} className="px-2 sm:px-3">
       {loading ? (
-        <LoadingSpinner size="sm" className="mr-2" />
+        <LoadingSpinner size="sm" className="sm:mr-2" />
       ) : (
-        <Download className="mr-2 h-4 w-4" strokeWidth={1.5} />
+        <Download className="h-4 w-4 sm:mr-2" strokeWidth={1.5} />
       )}
-      Export
+      <span className="hidden sm:inline">Export</span>
     </Button>
   );
 }

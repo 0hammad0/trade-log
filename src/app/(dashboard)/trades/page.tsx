@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { Plus, Upload } from "lucide-react";
 import { useTrades } from "@/hooks/use-trades";
+import { useSymbols } from "@/hooks/use-symbols";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,10 +47,14 @@ export default function TradesPage() {
     refresh,
   } = useTrades(filters);
 
+  const { symbols, addOrUpdateSymbol } = useSymbols();
+
   const handleCreateTrade = useCallback(async (values: TradeFormValues) => {
     setFormLoading(true);
     try {
       await createTrade(values);
+      // Track symbol usage
+      await addOrUpdateSymbol(values.symbol, values.market_type);
       toast.success("Trade added successfully", {
         description: `${values.symbol} ${values.direction} position`,
       });
@@ -60,13 +65,15 @@ export default function TradesPage() {
     } finally {
       setFormLoading(false);
     }
-  }, [createTrade]);
+  }, [createTrade, addOrUpdateSymbol]);
 
   const handleUpdateTrade = useCallback(async (values: TradeFormValues) => {
     if (!editingTrade) return;
     setFormLoading(true);
     try {
       await updateTrade(editingTrade.id, values);
+      // Track symbol usage
+      await addOrUpdateSymbol(values.symbol, values.market_type);
       toast.success("Trade updated successfully");
       setEditingTrade(undefined);
     } catch (error) {
@@ -76,7 +83,7 @@ export default function TradesPage() {
     } finally {
       setFormLoading(false);
     }
-  }, [editingTrade, updateTrade]);
+  }, [editingTrade, updateTrade, addOrUpdateSymbol]);
 
   const handleDeleteTrade = useCallback(async () => {
     if (!deleteId) return;
@@ -121,13 +128,13 @@ export default function TradesPage() {
         action={
           <div className="flex gap-2">
             <CSVExport />
-            <Button variant="outline" onClick={() => setImportOpen(true)}>
-              <Upload className="mr-2 h-4 w-4" strokeWidth={1.5} />
-              Import
+            <Button variant="outline" size="sm" onClick={() => setImportOpen(true)} className="px-2 sm:px-3">
+              <Upload className="h-4 w-4 sm:mr-2" strokeWidth={1.5} />
+              <span className="hidden sm:inline">Import</span>
             </Button>
-            <Button onClick={() => setDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" strokeWidth={1.5} />
-              Add Trade
+            <Button size="sm" onClick={() => setDialogOpen(true)} className="px-2 sm:px-3">
+              <Plus className="h-4 w-4 sm:mr-2" strokeWidth={1.5} />
+              <span className="hidden sm:inline">Add Trade</span>
             </Button>
           </div>
         }
@@ -151,6 +158,7 @@ export default function TradesPage() {
         trade={editingTrade}
         onSubmit={editingTrade ? handleUpdateTrade : handleCreateTrade}
         loading={formLoading}
+        symbols={symbols}
       />
 
       <CSVImport

@@ -68,15 +68,15 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-md shadow-sm">
-      <CardHeader className="space-y-4 text-center">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
-          <TrendingUp className="h-6 w-6 text-primary-foreground" strokeWidth={1.5} />
+    <Card className="w-full max-w-md border-border/50 shadow-2xl shadow-primary/5 backdrop-blur-sm">
+      <CardHeader className="space-y-4 text-center pb-2">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/25">
+          <TrendingUp className="h-7 w-7 text-primary-foreground" strokeWidth={2} />
         </div>
         <div>
-          <CardTitle className="text-2xl">Welcome back</CardTitle>
+          <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
           <CardDescription className="mt-2">
-            Sign in to your account to continue
+            Sign in to your trading journal
           </CardDescription>
         </div>
       </CardHeader>

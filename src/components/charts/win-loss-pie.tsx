@@ -64,11 +64,19 @@ function WinLossPieComponent({ trades, loading }: WinLossPieProps) {
   }
 
   const total = data.reduce((sum, d) => sum + d.value, 0);
+  const winData = data.find(d => d.name === "Wins");
+  const winRate = winData ? ((winData.value / total) * 100).toFixed(0) : "0";
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Win/Loss Ratio</CardTitle>
+    <Card className="overflow-hidden">
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2">
+          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+          Win/Loss Ratio
+        </CardTitle>
+        <p className="text-xs text-muted-foreground">
+          Distribution of trade outcomes
+        </p>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={250}>
@@ -76,24 +84,35 @@ function WinLossPieComponent({ trades, loading }: WinLossPieProps) {
             <Pie
               data={data}
               cx="50%"
-              cy="50%"
-              innerRadius={60}
-              outerRadius={90}
-              paddingAngle={2}
+              cy="45%"
+              innerRadius={55}
+              outerRadius={85}
+              paddingAngle={3}
               dataKey="value"
+              strokeWidth={2}
+              stroke="hsl(var(--card))"
             >
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>
+            {/* Center label */}
+            <text x="50%" y="45%" textAnchor="middle" dominantBaseline="middle">
+              <tspan x="50%" dy="-0.5em" className="fill-foreground text-2xl font-bold">
+                {winRate}%
+              </tspan>
+              <tspan x="50%" dy="1.5em" className="fill-muted-foreground text-xs">
+                Win Rate
+              </tspan>
+            </text>
             <Tooltip
               content={({ active, payload }) => {
                 if (!active || !payload?.[0]) return null;
                 const data = payload[0].payload;
                 const percentage = ((data.value / total) * 100).toFixed(1);
                 return (
-                  <div className="rounded-lg border bg-background p-3 shadow-md">
-                    <p className="font-medium">{data.name}</p>
+                  <div className="rounded-xl border bg-card p-3 shadow-xl">
+                    <p className="font-semibold">{data.name}</p>
                     <p className="text-sm text-muted-foreground">
                       {data.value} trades ({percentage}%)
                     </p>
@@ -105,7 +124,7 @@ function WinLossPieComponent({ trades, loading }: WinLossPieProps) {
               verticalAlign="bottom"
               height={36}
               formatter={(value) => (
-                <span className="text-sm text-foreground">{value}</span>
+                <span className="text-sm font-medium text-foreground">{value}</span>
               )}
             />
           </PieChart>
