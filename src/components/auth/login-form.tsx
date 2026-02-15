@@ -68,19 +68,19 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-md border-border/50 shadow-2xl shadow-primary/5 backdrop-blur-sm">
-      <CardHeader className="space-y-4 text-center pb-2">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/25">
-          <TrendingUp className="h-7 w-7 text-primary-foreground" strokeWidth={2} />
+    <Card className="w-full min-w-[320px] sm:min-w-[450px] sm:max-w-xl border-border/50 shadow-2xl shadow-primary/5 backdrop-blur-sm">
+      <CardHeader className="space-y-3 text-center px-4 pt-6 pb-2 sm:space-y-4 sm:px-6 sm:pt-8">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/25 sm:h-14 sm:w-14 sm:rounded-2xl">
+          <TrendingUp className="h-6 w-6 text-primary-foreground sm:h-7 sm:w-7" strokeWidth={2} />
         </div>
         <div>
-          <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-          <CardDescription className="mt-2">
+          <CardTitle className="text-xl font-bold sm:text-2xl">Welcome back</CardTitle>
+          <CardDescription className="mt-1 text-sm sm:mt-2">
             Sign in to your trading journal
           </CardDescription>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4 px-4 sm:space-y-6 sm:px-6">
         <OAuthButtons />
 
         <div className="relative">
@@ -95,7 +95,7 @@ export function LoginForm() {
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
             <FormField
               control={form.control}
               name="email"
@@ -106,6 +106,7 @@ export function LoginForm() {
                     <Input
                       type="email"
                       placeholder="name@example.com"
+                      className="h-11"
                       {...field}
                     />
                   </FormControl>
@@ -120,20 +121,20 @@ export function LoginForm() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
+                    <Input type="password" placeholder="••••••••" className="h-11" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full h-11" disabled={loading}>
               {loading && <LoadingSpinner size="sm" className="mr-2" />}
               Sign in
             </Button>
           </form>
         </Form>
       </CardContent>
-      <CardFooter className="justify-center">
+      <CardFooter className="justify-center px-4 pb-6 sm:px-6">
         <p className="text-sm text-muted-foreground">
           Don&apos;t have an account?{" "}
           <Link

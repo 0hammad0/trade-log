@@ -33,7 +33,7 @@ export function OAuthButtons() {
     <div className="space-y-3">
       <Button
         variant="outline"
-        className="w-full"
+        className="w-full h-11"
         onClick={() => handleOAuth("google")}
         disabled={loading !== null}
       >

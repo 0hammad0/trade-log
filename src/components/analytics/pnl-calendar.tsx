@@ -136,15 +136,17 @@ function PnLCalendarComponent({
     const intensity = Math.min(Math.abs(pnl) / maxAbsPnL, 1);
 
     if (pnl > 0) {
-      if (intensity > 0.7) return "bg-emerald-500 text-white dark:bg-emerald-600";
-      if (intensity > 0.4) return "bg-emerald-400 text-emerald-950 dark:bg-emerald-500 dark:text-white";
-      if (intensity > 0.2) return "bg-emerald-300 text-emerald-900 dark:bg-emerald-700 dark:text-emerald-100";
-      return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200";
+      // Green shades - ensure white text on darker backgrounds
+      if (intensity > 0.7) return "bg-emerald-600 text-white dark:bg-emerald-500 dark:text-white";
+      if (intensity > 0.4) return "bg-emerald-500 text-white dark:bg-emerald-600 dark:text-white";
+      if (intensity > 0.2) return "bg-emerald-200 text-emerald-800 dark:bg-emerald-800 dark:text-emerald-100";
+      return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/70 dark:text-emerald-200";
     } else {
-      if (intensity > 0.7) return "bg-red-500 text-white dark:bg-red-600";
-      if (intensity > 0.4) return "bg-red-400 text-red-950 dark:bg-red-500 dark:text-white";
-      if (intensity > 0.2) return "bg-red-300 text-red-900 dark:bg-red-700 dark:text-red-100";
-      return "bg-red-100 text-red-800 dark:bg-red-900/60 dark:text-red-200";
+      // Red shades - ensure white text on darker backgrounds
+      if (intensity > 0.7) return "bg-red-600 text-white dark:bg-red-500 dark:text-white";
+      if (intensity > 0.4) return "bg-red-500 text-white dark:bg-red-600 dark:text-white";
+      if (intensity > 0.2) return "bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-100";
+      return "bg-red-100 text-red-700 dark:bg-red-900/70 dark:text-red-200";
     }
   };
 
@@ -291,18 +293,14 @@ function PnLCalendarComponent({
                           <span className="text-[11px] font-bold leading-none sm:text-sm">
                             {formatCompactCurrency(dayData.pnl, currency)}
                           </span>
-                          <span className="flex items-center gap-0.5 text-[8px] font-medium opacity-80 sm:text-[10px]">
-                            <span className="text-emerald-900 dark:text-emerald-200">
-                              {dayData.wins}W
-                            </span>
-                            <span className="opacity-50">/</span>
-                            <span className="text-red-900 dark:text-red-200">
-                              {dayData.losses}L
-                            </span>
+                          <span className="flex items-center gap-0.5 text-[8px] font-medium opacity-90 sm:text-[10px]">
+                            <span>{dayData.wins}W</span>
+                            <span className="opacity-60">/</span>
+                            <span>{dayData.losses}L</span>
                             {dayData.breakeven > 0 && (
                               <>
-                                <span className="opacity-50">/</span>
-                                <span className="opacity-70">{dayData.breakeven}B</span>
+                                <span className="opacity-60">/</span>
+                                <span>{dayData.breakeven}B</span>
                               </>
                             )}
                           </span>
