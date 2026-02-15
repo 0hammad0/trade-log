@@ -1,0 +1,451 @@
+"use client";
+
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { tradeFormSchema, type TradeFormValues, type TradeFormInput } from "@/lib/validations/trade";
+import { MARKETS, CURRENCIES, DIRECTIONS, TRADE_STATUSES } from "@/constants/markets";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  FormDescription,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { LoadingSpinner } from "@/components/shared/loading-spinner";
+import { cn } from "@/lib/utils";
+import type { Trade } from "@/types";
+
+interface TradeFormProps {
+  trade?: Trade;
+  onSubmit: (values: TradeFormValues) => Promise<void>;
+  onCancel: () => void;
+  loading?: boolean;
+}
+
+export function TradeForm({
+  trade,
+  onSubmit,
+  onCancel,
+  loading = false,
+}: TradeFormProps) {
+  const form = useForm<TradeFormInput>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(tradeFormSchema) as any,
+    defaultValues: {
+      symbol: trade?.symbol || "",
+      market_type: trade?.market_type || "stock",
+      currency: trade?.currency || "USD",
+      direction: trade?.direction || "long",
+      entry_price: trade?.entry_price || undefined,
+      exit_price: trade?.exit_price || undefined,
+      quantity: trade?.quantity || undefined,
+      stop_loss: trade?.stop_loss || undefined,
+      take_profit: trade?.take_profit || undefined,
+      status: trade?.status || "open",
+      setup: trade?.setup || "",
+      notes: trade?.notes || "",
+      trade_date: trade?.trade_date?.split("T")[0] || format(new Date(), "yyyy-MM-dd"),
+      exit_date: trade?.exit_date?.split("T")[0] || undefined,
+    },
+  });
+
+  const watchStatus = form.watch("status");
+
+  useEffect(() => {
+    if (watchStatus === "closed" && !form.getValues("exit_date")) {
+      form.setValue("exit_date", format(new Date(), "yyyy-MM-dd"));
+    }
+  }, [watchStatus, form]);
+
+  const handleSubmit = async (values: TradeFormInput) => {
+    // Values are validated by zod, safe to cast
+    await onSubmit(values as TradeFormValues);
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        {/* Row 1: Symbol, Market Type, Currency */}
+        <div className="grid gap-4 sm:grid-cols-3">
+          <FormField
+            control={form.control}
+            name="symbol"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Symbol</FormLabel>
+                <FormControl>
+                  <Input placeholder="AAPL" {...field} className="uppercase" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="market_type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Market</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select market" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {MARKETS.map((market) => (
+                      <SelectItem key={market.value} value={market.value}>
+                        {market.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="currency"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Currency</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select currency" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {CURRENCIES.map((currency) => (
+                      <SelectItem key={currency.value} value={currency.value}>
+                        {currency.symbol} {currency.value}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Row 2: Direction, Status */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="direction"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Direction</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select direction" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {DIRECTIONS.map((dir) => (
+                      <SelectItem key={dir.value} value={dir.value}>
+                        {dir.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Status</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {TRADE_STATUSES.map((status) => (
+                      <SelectItem key={status.value} value={status.value}>
+                        {status.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Row 3: Entry, Exit, Quantity */}
+        <div className="grid gap-4 sm:grid-cols-3">
+          <FormField
+            control={form.control}
+            name="entry_price"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Entry Price</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="any"
+                    placeholder="0.00"
+                    {...field}
+                    onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="exit_price"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Exit Price</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="any"
+                    placeholder="0.00"
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
+                  />
+                </FormControl>
+                <FormDescription>Leave empty for open trades</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="quantity"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Quantity</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="any"
+                    placeholder="0"
+                    {...field}
+                    onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Row 4: Stop Loss, Take Profit */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="stop_loss"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Stop Loss</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="any"
+                    placeholder="0.00"
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="take_profit"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Take Profit</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="any"
+                    placeholder="0.00"
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Row 5: Trade Date, Exit Date */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="trade_date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Trade Date</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(new Date(field.value), "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onSelect={(date) =>
+                        field.onChange(date ? format(date, "yyyy-MM-dd") : "")
+                      }
+                      disabled={(date) => date > new Date()}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="exit_date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Exit Date</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(new Date(field.value), "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onSelect={(date) =>
+                        field.onChange(date ? format(date, "yyyy-MM-dd") : undefined)
+                      }
+                      disabled={(date) => date > new Date()}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Row 6: Setup */}
+        <FormField
+          control={form.control}
+          name="setup"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Setup / Strategy</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="e.g., Breakout, VWAP bounce, Support test"
+                  {...field}
+                  value={field.value ?? ""}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Row 7: Notes */}
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Notes</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="What did you observe? Any lessons learned?"
+                  className="min-h-[100px] resize-none"
+                  {...field}
+                  value={field.value ?? ""}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Actions */}
+        <div className="flex justify-end gap-3">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={loading}>
+            {loading && <LoadingSpinner size="sm" className="mr-2" />}
+            {trade ? "Update Trade" : "Add Trade"}
+          </Button>
+        </div>
+      </form>
+    </Form>
+  );
+}

@@ -1,0 +1,4 @@
+symbol,market_type,currency,direction,entry_price,exit_price,quantity,stop_loss,take_profit,status,setup,notes,trade_date,exit_date
+AAPL,stock,USD,long,150.00,155.00,100,145.00,160.00,closed,Breakout,Strong momentum after earnings,2024-01-15,2024-01-16
+BTCUSD,crypto,USD,long,42000,43500,0.5,41000,45000,closed,Support bounce,Double bottom pattern,2024-01-14,2024-01-15
+EURUSD,forex,USD,short,1.0850,1.0800,10000,1.0900,1.0750,closed,Trend continuation,Bearish flag pattern,2024-01-13,2024-01-14
