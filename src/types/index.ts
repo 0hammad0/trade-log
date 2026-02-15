@@ -107,3 +107,33 @@ export interface SetupPerformance {
   totalPnL: number;
   averagePnL: number;
 }
+
+export interface AnalyticsStats {
+  totalPnL: number;
+  totalTrades: number;
+  winningTrades: number;
+  losingTrades: number;
+  breakEvenTrades: number;
+  winRate: number;
+  profitFactor: number;
+  averageWin: number;
+  averageLoss: number;
+  payoffRatio: number;
+  expectancy: number;
+  maxDrawdown: number;
+  maxDrawdownPercent: number;
+  bestTrade: number;
+  worstTrade: number;
+  averageTradeDuration: number; // in days
+  longestWinStreak: number;
+  longestLoseStreak: number;
+  currentStreak: { type: 'win' | 'loss' | 'none'; count: number };
+}
+
+export interface MarketPerformance {
+  market: MarketType;
+  trades: number;
+  winRate: number;
+  totalPnL: number;
+  averagePnL: number;
+}

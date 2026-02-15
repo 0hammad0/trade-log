@@ -44,32 +44,34 @@ const actions = [
 function QuickActionsComponent() {
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2">
+      <CardHeader className="p-3 pb-2 sm:p-6 sm:pb-3">
+        <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
           <span className="h-1.5 w-1.5 rounded-full bg-primary" />
           Quick Actions
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 gap-3">
+      <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3">
           {actions.map((action) => (
             <Link
               key={action.title}
               href={action.href}
-              className="group flex items-center gap-3 rounded-xl border border-transparent bg-accent/50 p-3 transition-all duration-300 hover:border-border hover:bg-accent hover:shadow-md hover:-translate-y-0.5"
+              className="group flex flex-col items-center gap-1.5 rounded-lg border border-transparent bg-accent/50 p-2 text-center transition-all duration-200 active:scale-95 sm:flex-row sm:gap-3 sm:rounded-xl sm:p-3 sm:text-left sm:hover:-translate-y-0.5 sm:hover:border-border sm:hover:bg-accent sm:hover:shadow-md"
             >
               <div
                 className={cn(
-                  "flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg",
+                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all duration-200 sm:h-11 sm:w-11 sm:rounded-xl sm:group-hover:scale-110 sm:group-hover:shadow-lg",
                   action.bgColor,
                   action.color
                 )}
               >
-                <action.icon className="h-5 w-5" strokeWidth={1.5} />
+                <action.icon className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.5} />
               </div>
-              <div>
-                <p className="font-semibold text-foreground">{action.title}</p>
-                <p className="text-xs text-muted-foreground">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-foreground sm:text-base">
+                  {action.title}
+                </p>
+                <p className="hidden text-xs text-muted-foreground sm:block">
                   {action.description}
                 </p>
               </div>

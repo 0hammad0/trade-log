@@ -25,16 +25,16 @@ interface StatsCardsProps {
 
 function StatsCardsSkeleton() {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-2 sm:gap-4 lg:grid-cols-4">
       {Array.from({ length: 4 }).map((_, i) => (
         <Card key={i}>
-          <CardContent className="p-6">
+          <CardContent className="p-3 sm:p-6">
             <div className="flex items-center justify-between">
-              <Skeleton className="h-10 w-10 rounded-lg" />
-              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-8 w-8 rounded-lg sm:h-10 sm:w-10" />
+              <Skeleton className="h-3 w-12 sm:h-4 sm:w-16" />
             </div>
-            <Skeleton className="mt-4 h-8 w-24" />
-            <Skeleton className="mt-1 h-4 w-20" />
+            <Skeleton className="mt-2 h-6 w-20 sm:mt-4 sm:h-8 sm:w-24" />
+            <Skeleton className="mt-1 h-3 w-16 sm:h-4 sm:w-20" />
           </CardContent>
         </Card>
       ))}
@@ -124,42 +124,42 @@ function StatsCardsComponent({ stats, loading, currency = "USD" }: StatsCardsPro
   ];
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-2 sm:gap-4 lg:grid-cols-4">
       {cards.slice(0, 4).map((card, index) => (
         <Card
           key={card.title}
           className={cn(
-            "relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5",
+            "relative overflow-hidden transition-all duration-200 sm:hover:-translate-y-0.5 sm:hover:shadow-lg",
             index === 0 && "border-primary/20 bg-gradient-to-br from-card to-primary/5"
           )}
         >
-          <CardContent className="p-6">
+          <CardContent className="p-3 sm:p-6">
             <div className="flex items-center justify-between">
               <div
                 className={cn(
-                  "flex h-11 w-11 items-center justify-center rounded-xl shadow-sm",
+                  "flex h-8 w-8 items-center justify-center rounded-lg shadow-sm sm:h-11 sm:w-11 sm:rounded-xl",
                   card.iconColor
                 )}
               >
-                <card.icon className="h-5 w-5" strokeWidth={1.5} />
+                <card.icon className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.5} />
               </div>
               {index === 0 && (
-                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wider text-primary sm:px-2 sm:text-[10px]">
                   Total
                 </span>
               )}
             </div>
-            <div className="mt-4">
+            <div className="mt-2 sm:mt-4">
               <p
                 className={cn(
-                  "text-2xl font-bold tracking-tight",
+                  "text-lg font-bold tracking-tight sm:text-2xl",
                   card.valueColor
                 )}
               >
                 {card.value}
               </p>
-              <p className="text-sm font-medium text-muted-foreground">{card.title}</p>
-              <p className="mt-1 text-xs text-muted-foreground/70">{card.description}</p>
+              <p className="text-xs font-medium text-muted-foreground sm:text-sm">{card.title}</p>
+              <p className="mt-0.5 hidden text-xs text-muted-foreground/70 sm:mt-1 sm:block">{card.description}</p>
             </div>
           </CardContent>
           {/* Subtle gradient overlay */}
